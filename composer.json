@@ -1,0 +1,28 @@
+{
+  "name": "awkwardideas/syncscript",
+  "description": "Sync Script Generator",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Chad Haney",
+      "email": "chad@awkwardideas.com"
+    },
+    {
+      "name": "Awkward Ideas",
+      "email": "support@awkwardideas.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.6.4",
+    "awkwardideas/mypdo" : "@dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "AwkwardIdeas\\Migrator\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
+  },
+  "minimum-stability": "dev"
+}

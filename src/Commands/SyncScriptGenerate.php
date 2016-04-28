@@ -46,12 +46,12 @@ class SyncScriptGenerate extends Command
         }
 
         if ($this->option('to') != "") {
-            $from = $this->option('to');
+            $to = $this->option('to');
         } else {
-            $from= $this->ask('What database do you want to receive the synchronized data?');
+            $to= $this->ask('What database do you want to receive the synchronized data?');
         }
 
-        $this->comment("Migrating from $from.");
+        $this->comment("Migrating from $from to $to.");
         $this->comment(PHP_EOL.SyncScript::Generate($from, $to).PHP_EOL);
     }
 
@@ -63,7 +63,7 @@ class SyncScriptGenerate extends Command
     protected function getOptions()
     {
         return array(
-            array('from', null, InputOption::VALUE_OPTIONAL, "Database to Sync from","")
+            array('from', null, InputOption::VALUE_OPTIONAL, "Database to Sync from",""),
             array('to', null, InputOption::VALUE_OPTIONAL, "Database to Sync to","")
         );
     }

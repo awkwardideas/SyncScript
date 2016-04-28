@@ -108,6 +108,9 @@ class SyncScript{
     public function GetBackup(){
         return $this->backup;
     }
+    public function SetBackup($backup){
+        $this->backup = $backup;
+    }
 
     private static function GetSyncDirectory(){
         return getcwd().'/database/sync/';
@@ -127,8 +130,8 @@ class SyncScript{
 
     private function GetSelectAllStatement($tablename, $columns, $indentation){
         $select = $indentation . "SELECT "
-                  . self::ListColumnsWithTable($tablename, $columns, $indentation.indent(), false)
-                  . $indentation . "FROM `" . $this->GetDatabase() . "`.`" . $tablename ."`";
+                  . self::ListColumnsWithTable($tablename, $columns, $indentation.indent(), false) . PHP_EOL
+                  . $indentation . "FROM `" . $this->GetDatabase() . "`.`" . $tablename ."`;";
         return $select;
     }
 
@@ -155,17 +158,51 @@ class SyncScript{
         return self::ListColumnsWithTable("",$columns, $indentation, $wrap);
     }
 
-    public function CreateSyncFile($tablename){
-        $fileData = $this->GetFileOutput($tablename);
-        $fileName = $this->GetFileName($tablename);
+    public static function Generate($database, $backup)
+    {
+        $syncScript = new SyncScript();
+        if ($database != "") {
+            $syncScript->SetDatabase($database);
+        }
+        if ($backup != "") {
+            $syncScript->SetBackup($backup);
+        }
+        $tables = $syncScript->GetTables();
+        $fullSync = "";
+        foreach ($tables as $table) {
+            $tablename = $table[0];
+            $fullSync .= $syncScript->CreateSyncScript($tablename) . PHP_EOL . PHP_EOL . PHP_EOL;
+        }
+        $syncScript->CreateFullSyncScript($fullSync);
+        return "New SyncScript Files Created in " . self::GetSyncDirectory();
+    }
+    public function CreateFullSyncScript($fullSync){
         $dir = self::GetSyncDirectory();
+        $fileName = $this->GetFileName("all");
 
         $parts = explode('/', $dir);
         $file = array_pop($parts);
         $dir = '';
         foreach($parts as $part)
             if(!is_dir($dir .= "/$part")) mkdir($dir);
-        return file_put_contents("$dir/$fileName", $fileData);
+
+        return file_put_contents("$dir/$fileName", $fullSync);
+    }
+
+    public function CreateSyncScript($tablename){
+        $fileData = $this->GetFileOutput($tablename);
+        $fileName = $this->GetFileName($tablename);
+        $dir = $this->GetSyncDirectory();
+
+        $parts = explode('/', $dir);
+        $file = array_pop($parts);
+        $dir = '';
+        foreach($parts as $part)
+            if(!is_dir($dir .= "/$part")) mkdir($dir);
+
+        file_put_contents("$dir/$fileName", $fileData);
+
+        return $fileData;
     }
 
     private function ConnectToDatabase(){
@@ -180,18 +217,18 @@ class SyncScript{
 
     private function GetFileName($tablename){
         $d = date('Y_m_d_His');
-        return $d . "_create_" . $tablename . "_table.php";
+        return $d . "_sync_" . $tablename . "_table.php";
     }
 
     private function GetFileOutput($tablename)
     {
         $columns = $this->DescribeTable($tablename);
         $insertStatement = $this->GetInsertStatement($tablename, $columns, indent());
-        $selectStatement = $this->GetInsertStatement($tablename, $columns, indent());
+        $selectStatement = $this->GetSelectAllStatement($tablename, $columns, indent());
         $output = "-- MySQL Sync Script for " . $tablename . PHP_EOL
             . "-- Host: " . $this->GetHost() . "   Database: " . $this->GetDatabase() . "   Backup: " . $this->GetBackup() . PHP_EOL
             . PHP_EOL
-            . $insertStatement
+            . $insertStatement . PHP_EOL
             . $selectStatement;
         return $output;
     }

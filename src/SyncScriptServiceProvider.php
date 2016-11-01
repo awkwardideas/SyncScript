@@ -26,7 +26,7 @@ class SyncScriptServiceProvider extends ServiceProvider
     public function register()
     {
 
-        $this->mergeConfigFrom(__DIR__ . '/../config/syncscript.php', 'syncsript');
+        $this->mergeConfigFrom(__DIR__ . '/../config/syncscript.php', 'syncscript');
 
         $this->app['syncscript.generate'] = $this->app->share(function () {
             return new Commands\SyncScriptGenerate();
